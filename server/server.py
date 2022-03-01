@@ -9,7 +9,7 @@ from traceback import print_tb
 from PIL import ImageGrab
 import cv2
 from numpy import array
-from keeyboarinput import *
+from keyboardInput import *
 import sys
 
 
@@ -123,8 +123,17 @@ with clientsocket:
     if(str(data) == "Start"):
         print("!!! Servo Motora Konum Bilgisi Gönderilmeye Başlanıyor !!!")
         time.sleep(3)
+        #
+        cap = cv2.VideoCapture(1)
+        #
         while True:
-            Screen = array(ImageGrab.grab(bbox=(400, 400, 800, 800)))
+
+            ##
+            _, frame = cap.read()
+            Screen = array(frame)
+
+            ##
+            #Screen = array(ImageGrab.grab(bbox=(400, 400, 800, 800)))
             a = detect(Screen)
             key = cv2.waitKey(1)
             if key == 27:
