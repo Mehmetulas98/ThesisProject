@@ -25,8 +25,8 @@ GPIO.output(lin2,GPIO.LOW)
 p=GPIO.PWM(ren,1000)
 pleft=GPIO.PWM(leftenable,1000)
 
-p.start(75)
-pleft.start(75)
+p.start(50)
+pleft.start(50)
 print("\n")
 print("Baslangic olarak dusuk hiz ve ileri olarak calisir")
 print("r-ileri s-dur f-ileri b-geri l-dusuk m-orta h-hizli e-cikis")
@@ -51,21 +51,26 @@ while(1):
          print("backward")
          x='z'
     # sola dön
-    elif x == 'u':
-        print("Sola Dön")
-        p.ChangeDutyCycle(25)
-        pleft.ChangeDutyCycle(100)
-        GPIO.output(rin1,GPIO.HIGH)
-        GPIO.output(rin2,GPIO.LOW)
-        GPIO.output(lin1,GPIO.LOW)
-        GPIO.output(lin2,GPIO.HIGH)
-    #sağa dön    
     elif x == 'ı':
         print("Sağa Dön")
+        p.ChangeDutyCycle(100)
+        pleft.ChangeDutyCycle(30) 
+        GPIO.output(rin1,GPIO.HIGH)
+        GPIO.output(rin2,GPIO.LOW)
+        
+        GPIO.output(lin1,GPIO.LOW)
+        GPIO.output(lin2,GPIO.HIGH)
+        
+    #sağa dön    
+    elif x == 'u':
+        print("Sola Dön")
+        p.ChangeDutyCycle(30)
+        pleft.ChangeDutyCycle(100)
         GPIO.output(rin1,GPIO.LOW)
         GPIO.output(rin2,GPIO.HIGH)
         GPIO.output(lin1,GPIO.HIGH)
         GPIO.output(lin2,GPIO.LOW)
+        
         
     elif x=='s':
         print("Dur")
@@ -73,6 +78,7 @@ while(1):
         GPIO.output(rin2,GPIO.LOW)
         GPIO.output(lin1,GPIO.LOW)
         GPIO.output(lin2,GPIO.LOW)
+         
         x='z'
 
     elif x=='f':
@@ -122,3 +128,4 @@ while(1):
     else:
         print("<<<  hatali data  >>>")
         print("normal komutlari yaziniz.....")
+
