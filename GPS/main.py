@@ -1,12 +1,57 @@
 import serial
 import time
+import RPi.GPIO as GPIO          
+
 import string
 import pynmea2
 import numpy
 import math
 import smbus
-from time import sleep  
+from time import sleep
+#####################################
+rin1 = 24
+rin2 = 23
+ren = 25 # PWM Pin
+lin1 = 13
+lin2 = 19
+leftenable = 26
+temp1=1
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(rin1,GPIO.OUT)
+GPIO.setup(rin2,GPIO.OUT)
+GPIO.setup(ren,GPIO.OUT)
+GPIO.output(rin1,GPIO.LOW)
+GPIO.output(rin2,GPIO.LOW)
 
+GPIO.setup(lin1,GPIO.OUT)
+GPIO.setup(lin2,GPIO.OUT)
+GPIO.setup(leftenable,GPIO.OUT)
+GPIO.output(lin1,GPIO.LOW)
+GPIO.output(lin2,GPIO.LOW)
+
+p=GPIO.PWM(ren,1000)
+pleft=GPIO.PWM(leftenable,1000)
+
+p.start(50)
+pleft.start(50)
+def sola_dön(p,pleft):
+    print("Sola Dön")
+    p.ChangeDutyCycle(30)
+    pleft.ChangeDutyCycle(100)
+    GPIO.output(rin1,GPIO.LOW)
+    GPIO.output(rin2,GPIO.HIGH)
+    GPIO.output(lin1,GPIO.HIGH)
+    GPIO.output(lin2,GPIO.LOW)
+def sağa_dön(p,pleft):
+    print("Sağa Dön")
+    p.ChangeDutyCycle(100)
+    pleft.ChangeDutyCycle(30) 
+    GPIO.output(rin1,GPIO.HIGH)
+    GPIO.output(rin2,GPIO.LOW)       
+    GPIO.output(lin1,GPIO.LOW)
+    GPIO.output(lin2,GPIO.HIGH)
+########################################
 X_axis_H    = 0x01
 Z_axis_H    = 0x05              
 Y_axis_H    = 0x03             
@@ -128,4 +173,5 @@ while True:
 			print("Anlık konum bilgisi : "+gps)
 			print("İstenen koordinat ile aradaki heading değeri : "+ str(gpsbearing))
 			print("İstenen konum için yapılması gereken hareket "+str(calculate_bearing(gpsbearing,cnmpdata)))
+			
 			break
