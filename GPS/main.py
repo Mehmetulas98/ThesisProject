@@ -133,45 +133,47 @@ def get_compass_result():
 	    heading = heading - 360.0
 	return heading
 def calculate_bearing(hedefbearing,anlıkbearing):
-	if(hedefbearing < anlıkbearing):
-		return "sağa dön"
-	else:
-		return "sola dön"
+    if(hedefbearing < anlıkbearing+5 and hedefbearing > anlıkbearing-5):
+        return "Düz"
+    elif(hedefbearing < anlıkbearing):
+        return "Sol"
+    else:
+        return "Sağ"
+    
+ 
 #38.476033, 27.219424
 cnmpdata=0
 while True:
-	chipid = bus.read_byte_data(Device_Address, 0x0d)
-	Magnetometer_Init()   
-	[x1, y1, z] = get_data()
-	if x1 is None or y1 is None:
-		heading = 0
-	else:
-		heading=math.degrees(math.atan2(y1,x1))
-	if(heading < 0):
-		heading = heading + 360.0 + math.degrees(declination)
-	elif(heading > 360.0):
-		heading = heading - 360.0
-	cnmpdata=heading
-	print("COMPAS VERİSİ " + str (cnmpdata))
-	while True:
-		port="/dev/ttyAMA0"
-		ser=serial.Serial(port, baudrate=9600, timeout=3)
-		dataout = pynmea2.NMEAStreamReader()
-		newdata=str(ser.readline())
-		if newdata[2:7] == "GPGGA":
-			eklenecek = "0000"        
-			newdata=newdata[2:-5]
-			newdata = newdata[:-3] + eklenecek + newdata[-3:]
-			org = "$GPGGA,100506.00,3828.54822,N,02713.19127,E,1,05,2.32,135.4,M,34.7,M,,0000*58"
-			newmsg=pynmea2.parse(newdata)
-			lat=newmsg.latitude
-			lng=newmsg.longitude
-			gps = "Latitude=" + str(lat) + " and Longitude=" + str(lng)
-			gpsbearing = (get_bearing(lat,lng,38.476033,27.219424))
-			if(gpsbearing < 0):
-				gpsbearing+=360
-			print("Anlık konum bilgisi : "+gps)
-			print("İstenen koordinat ile aradaki heading değeri : "+ str(gpsbearing))
-			print("İstenen konum için yapılması gereken hareket "+str(calculate_bearing(gpsbearing,cnmpdata)))
-			
-			break
+    port="/dev/ttyAMA0"
+    ser=serial.Serial(port, baudrate=9600)
+    dataout = pynmea2.NMEAStreamReader()
+    newdata=str(ser.readline())
+    #print(newdata)
+    if newdata[2:7] == "GPGGA":
+        eklenecek = "0000"        
+        newdata=newdata[2:-5]
+        newdata = newdata[:-3] + eklenecek + newdata[-3:]
+        org = "$GPGGA,100506.00,3828.54822,N,02713.19127,E,1,05,2.32,135.4,M,34.7,M,,0000*58"
+        newmsg=pynmea2.parse(newdata)
+        lat=newmsg.latitude
+        lng=newmsg.longitude
+        gps = "Latitude=" + str(lat) + " and Longitude=" + str(lng)
+        gpsbearing = (get_bearing(lat,lng,38.476033,27.219424))
+        if(gpsbearing < 0):
+            gpsbearing+=360
+        chipid = bus.read_byte_data(Device_Address, 0x0d)
+        Magnetometer_Init()   
+        [x1, y1, z] = get_data()
+        if x1 is None or y1 is None:
+            heading = 0
+        else:
+            heading=math.degrees(math.atan2(y1,x1))
+        if(heading < 0):
+            heading = heading + 360.0 + math.degrees(declination)
+        elif(heading > 360.0):
+            heading = heading - 360.0
+        cnmpdata=heading
+        print("Anlık konum bilgisi : "+gps)
+        print("COMPAS VERİSİ " + str (cnmpdata))
+        print("İstenen koordinat ile aradaki heading değeri : "+ str(gpsbearing))
+        print("İstenen konum için yapılması gereken hareket "+str(calculate_bearing(gpsbearing,cnmpdata)))
