@@ -51,6 +51,14 @@ def sağa_dön(p,pleft):
     GPIO.output(rin2,GPIO.LOW)       
     GPIO.output(lin1,GPIO.LOW)
     GPIO.output(lin2,GPIO.HIGH)
+def düz_git(p,pleft):
+    print("Düz Git")
+    p.ChangeDutyCycle(75)
+    pleft.ChangeDutyCycle(75) 
+    GPIO.output(rin1,GPIO.HIGH)
+    GPIO.output(rin2,GPIO.LOW)
+    GPIO.output(lin1,GPIO.HIGH)
+    GPIO.output(lin2,GPIO.LOW)
 ########################################
 X_axis_H    = 0x01
 Z_axis_H    = 0x05              
@@ -177,3 +185,21 @@ while True:
         print("COMPAS VERİSİ " + str (cnmpdata))
         print("İstenen koordinat ile aradaki heading değeri : "+ str(gpsbearing))
         print("İstenen konum için yapılması gereken hareket "+str(calculate_bearing(gpsbearing,cnmpdata)))
+        # Burada dönme işlemi gerçekleştirilecek iki yol var tek tek while içinde komut veya while kurup onun içerisinde dönene kadar yapmak
+        while(True): 
+            [x1, y1, z] = get_data()
+            if x1 is None or y1 is None:
+                heading = 0
+            else:
+                heading=math.degrees(math.atan2(y1,x1))
+            if(heading < 0):
+                heading = heading + 360.0 + math.degrees(declination)
+            elif(heading > 360.0):
+                heading = heading - 360.0
+            cnmpdata=heading
+            if(calculate_bearing(gpsbearing,cnmpdata) =="Düz"):
+                düz_git(p,pleft)
+            elif(calculate_bearing(gpsbearing,cnmpdata) =="Sol"):
+                sola_dön(p,pleft)
+            elif(calculate_bearing(gpsbearing,cnmpdata) =="Sağ"):
+                sağa_dön(p,pleft)
