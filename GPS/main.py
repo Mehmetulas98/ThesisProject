@@ -59,6 +59,25 @@ def düz_git(p,pleft):
     GPIO.output(rin2,GPIO.LOW)
     GPIO.output(lin1,GPIO.HIGH)
     GPIO.output(lin2,GPIO.LOW)
+#######################################
+    
+from math import radians, cos, sin, asin, sqrt
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+    return c * r
 ########################################
 X_axis_H    = 0x01
 Z_axis_H    = 0x05              
@@ -147,10 +166,9 @@ def calculate_bearing(hedefbearing,anlıkbearing):
         return "Sol"
     else:
         return "Sağ"
-    
- 
-#38.476033, 27.219424
 cnmpdata=0
+hedeflng =27.219424
+hedeflat =38.476033
 while True:
     port="/dev/ttyAMA0"
     ser=serial.Serial(port, baudrate=9600)
@@ -166,7 +184,7 @@ while True:
         lat=newmsg.latitude
         lng=newmsg.longitude
         gps = "Latitude=" + str(lat) + " and Longitude=" + str(lng)
-        gpsbearing = (get_bearing(lat,lng,38.476033,27.219424))
+        gpsbearing = (get_bearing(lat,lng,hedeflat,hedeflng))
         if(gpsbearing < 0):
             gpsbearing+=360
         chipid = bus.read_byte_data(Device_Address, 0x0d)
@@ -185,7 +203,6 @@ while True:
         print("COMPAS VERİSİ " + str (cnmpdata))
         print("İstenen koordinat ile aradaki heading değeri : "+ str(gpsbearing))
         print("İstenen konum için yapılması gereken hareket "+str(calculate_bearing(gpsbearing,cnmpdata)))
-        # Burada dönme işlemi gerçekleştirilecek iki yol var tek tek while içinde komut veya while kurup onun içerisinde dönene kadar yapmak
         while(True): 
             [x1, y1, z] = get_data()
             if x1 is None or y1 is None:
@@ -199,7 +216,16 @@ while True:
             cnmpdata=heading
             if(calculate_bearing(gpsbearing,cnmpdata) =="Düz"):
                 düz_git(p,pleft)
+                radius = 0.04 # 40 metre
+                a = haversine(lat, lng,  hedeflat, hedeflng)
+                print('Distance (metre) : ', a/100)
+                if a <= radius:
+                    print('Hedefe Varılmadı')
+                else:
+                    print('!!! Hedefe Varıldı ve Uygulama sonlandırılıyor !!!')
+                    break
             elif(calculate_bearing(gpsbearing,cnmpdata) =="Sol"):
                 sola_dön(p,pleft)
             elif(calculate_bearing(gpsbearing,cnmpdata) =="Sağ"):
                 sağa_dön(p,pleft)
+    break
