@@ -228,4 +228,4 @@ while True:
                 sola_dön(p,pleft)
             elif(calculate_bearing(gpsbearing,cnmpdata) =="Sağ"):
                 sağa_dön(p,pleft)
-    break
+    
