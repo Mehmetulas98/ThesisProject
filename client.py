@@ -10,8 +10,8 @@ import math
 import smbus
 from time import sleep
 
-HOST = '192.168.1.105'   
-PORT = 65432        
+HOST = '192.168.1.104'   
+PORT = 65433      
 
 XSERVOPIN = 17
 #YSERVOPIN =
@@ -193,48 +193,65 @@ hedeflat =38.476033
 def process_data_from_server(x):
     return x 
 def my_client():
-        global XINITPOS
-        #threading.Timer(11, my_client).start()
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT))
-            my = input("Enter command ")
-            my_inp = my.encode('utf-8')
-            s.sendall(my_inp)
-            if(my_inp=="Start"):
-                while(True):          
-                    data = s.recv(1024).decode('utf-8')
-                    x = process_data_from_server(data)
-                    print("Alınan Veri {}".format(x))
-                    if(x.isnumeric()):
-                        print(XINITPOS)
-                        if(int(x) > 90):
-                            if(XINITPOS+1 < 12):
-                                XINITPOS+=0.5
-                            p.ChangeDutyCycle(XINITPOS)
-                                          
-                        elif(int(x)<90):
-                            if(XINITPOS-1 > 2):
-                                XINITPOS-=0.5
-                            p.ChangeDutyCycle(XINITPOS)
-                    port="/dev/ttyAMA0"
-                    ser=serial.Serial(port, baudrate=9600)
-                    dataout = pynmea2.NMEAStreamReader()
-                    newdata=str(ser.readline())
-                    #print(newdata)
-                    if newdata[2:7] == "GPGGA":
-                        eklenecek = "0000"        
-                        newdata=newdata[2:-5]
-                        newdata = newdata[:-3] + eklenecek + newdata[-3:]
-                        org = "$GPGGA,100506.00,3828.54822,N,02713.19127,E,1,05,2.32,135.4,M,34.7,M,,0000*58"
-                        newmsg=pynmea2.parse(newdata)
-                        lat=newmsg.latitude
-                        lng=newmsg.longitude
-                        gps = "Latitude=" + str(lat) + " and Longitude=" + str(lng)
-                        gpsbearing = (get_bearing(lat,lng,hedeflat,hedeflng))
-                        if(gpsbearing < 0):
-                            gpsbearing+=360
-                        chipid = bus.read_byte_data(Device_Address, 0x0d)
-                        Magnetometer_Init()   
+    global XINITPOS
+    #threading.Timer(11, my_client).start()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((HOST, PORT))
+        my = input("Enter command ")
+        my_inp = my.encode('utf-8')
+        s.sendall(my_inp)
+        print(my)
+        if(my=="Start"):
+            print("kotnrolasdasdasd")
+            while(True):          
+                data = s.recv(1024).decode('utf-8')
+                x = process_data_from_server(data)
+                print("Alınan Veri {}".format(x))
+                if(x.isnumeric()):
+                    print(XINITPOS)
+                    if(int(x) > 90):
+                        if(XINITPOS+1 < 12):
+                            XINITPOS+=0.5
+                        p.ChangeDutyCycle(XINITPOS)
+                                        
+                    elif(int(x)<90):
+                        if(XINITPOS-1 > 2):
+                            XINITPOS-=0.5
+                        p.ChangeDutyCycle(XINITPOS)
+                port="/dev/ttyAMA0"
+                ser=serial.Serial(port, baudrate=9600)
+                dataout = pynmea2.NMEAStreamReader()
+                newdata=str(ser.readline())
+                print(newdata)
+                if newdata[2:7] == "GPGGA":
+                    eklenecek = "0000"        
+                    newdata=newdata[2:-5]
+                    newdata = newdata[:-3] + eklenecek + newdata[-3:]
+                    org = "$GPGGA,100506.00,3828.54822,N,02713.19127,E,1,05,2.32,135.4,M,34.7,M,,0000*58"
+                    newmsg=pynmea2.parse(newdata)
+                    lat=newmsg.latitude
+                    lng=newmsg.longitude
+                    gps = "Latitude=" + str(lat) + " and Longitude=" + str(lng)
+                    gpsbearing = (get_bearing(lat,lng,hedeflat,hedeflng))
+                    if(gpsbearing < 0):
+                        gpsbearing+=360
+                    chipid = bus.read_byte_data(Device_Address, 0x0d)
+                    Magnetometer_Init()   
+                    [x1, y1, z] = get_data()
+                    if x1 is None or y1 is None:
+                        heading = 0
+                    else:
+                        heading=math.degrees(math.atan2(y1,x1))
+                    if(heading < 0):
+                        heading = heading + 360.0 + math.degrees(declination)
+                    elif(heading > 360.0):
+                        heading = heading - 360.0
+                    cnmpdata=heading
+                    print("Anlık konum bilgisi : "+gps)
+                    print("COMPAS VERİSİ " + str (cnmpdata))
+                    print("İstenen koordinat ile aradaki heading değeri : "+ str(gpsbearing))
+                    print("İstenen konum için yapılması gereken hareket "+str(calculate_bearing(gpsbearing,cnmpdata)))
+                    while(True): 
                         [x1, y1, z] = get_data()
                         if x1 is None or y1 is None:
                             heading = 0
@@ -245,70 +262,21 @@ def my_client():
                         elif(heading > 360.0):
                             heading = heading - 360.0
                         cnmpdata=heading
-                        print("Anlık konum bilgisi : "+gps)
-                        print("COMPAS VERİSİ " + str (cnmpdata))
-                        print("İstenen koordinat ile aradaki heading değeri : "+ str(gpsbearing))
-                        print("İstenen konum için yapılması gereken hareket "+str(calculate_bearing(gpsbearing,cnmpdata)))
-                        while(True): 
-                            [x1, y1, z] = get_data()
-                            if x1 is None or y1 is None:
-                                heading = 0
+                        if(calculate_bearing(gpsbearing,cnmpdata) =="Düz"):
+                            düz_git(p,pleft)
+                            radius = 0.04 # 40 metre
+                            a = haversine(lat, lng,  hedeflat, hedeflng)
+                            print('Distance (metre) : ', a/100)
+                            if a <= radius:
+                                print('Hedefe Varılmadı')
                             else:
-                                heading=math.degrees(math.atan2(y1,x1))
-                            if(heading < 0):
-                                heading = heading + 360.0 + math.degrees(declination)
-                            elif(heading > 360.0):
-                                heading = heading - 360.0
-                            cnmpdata=heading
-                            if(calculate_bearing(gpsbearing,cnmpdata) =="Düz"):
-                                düz_git(p,pleft)
-                                radius = 0.04 # 40 metre
-                                a = haversine(lat, lng,  hedeflat, hedeflng)
-                                print('Distance (metre) : ', a/100)
-                                if a <= radius:
-                                    print('Hedefe Varılmadı')
-                                else:
-                                    print('!!! Hedefe Varıldı ve Uygulama sonlandırılıyor !!!')
-                                    break
-                            elif(calculate_bearing(gpsbearing,cnmpdata) =="Sol"):
-                                sola_dön(p,pleft)
-                            elif(calculate_bearing(gpsbearing,cnmpdata) =="Sağ"):
-                                sağa_dön(p,pleft)   
-            elif(my_inp == "Manuel"):
-                # Burada gelen kodlara göre araba hareket ettirilecek 
-                pass
-            elif(my_inp == "Otonom"):
-                #
-                #START_GPS_POSITION = []
-                #FINISH_GPS_POSITION = []
-                #CURRENT_GPS_POSITION = []
-                # CURRENT_ANGLE = get_angle()
-                while(True):
-                    # Hedef ile anlık koordinat arasındaki açı farkını bul
-                    # angle=get_bearing(CURRENT_GPS_POSITION[0],CURRENT_GPS_POSITION[1],FINISH_GPS_POSITION[0],FINISH_GPS_POSITION[1])
-                    
-                    # # 2 sn düz git
-
-                    # # yön düzelt
-                    # if(abs(angle - CURRCURRENT_ANGLE) > 180):
-                    #     while(angle != CURRENT_ANGLE):
-                    #         #sağa dön
-                    #         pass
-                    #     break
-                    # else:
-                    #     while(angle != CURRENT_ANGLE):
-                    #         #sola dön
-                    #         pass
-                    #     break
-
-                    # # GPS pozisyon bilgisi al
-                    # CURRRNT_GPS_POSITION = get_GPS_position()
-                    # if(get_distances(CURRENT_GPS_POSITION[0],CURRENT_GPS_POSITION[1],FINISH_GPS_POSITION[0],FINISH_GPS_POSITION[1]) <= 6):
-                    #     # İstenen bölgeye girildi
-                    #     print("! İstenen Konuma Varıldı !")
-                    #     break
-                             
+                                print('!!! Hedefe Varıldı ve Uygulama sonlandırılıyor !!!')
+                                break
+                        elif(calculate_bearing(gpsbearing,cnmpdata) =="Sol"):
+                            sola_dön(p,pleft)
+                        elif(calculate_bearing(gpsbearing,cnmpdata) =="Sağ"):
+                            sağa_dön(p,pleft)   
 if __name__ == "__main__":
-    while 1:
-        my_client()
-    GPIO.cleanup()
+	while 1:
+		my_client()
+	GPIO.cleanup()
