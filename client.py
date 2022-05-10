@@ -73,8 +73,8 @@ def sağa_dön(p,pleft):
     GPIO.output(lin2,GPIO.HIGH)
 def düz_git(p,pleft):
     print("Düz Git")
-    p.ChangeDutyCycle(75)
-    pleft.ChangeDutyCycle(75) 
+    p.ChangeDutyCycle(60)
+    pleft.ChangeDutyCycle(60) 
     GPIO.output(rin1,GPIO.HIGH)
     GPIO.output(rin2,GPIO.LOW)
     GPIO.output(lin1,GPIO.HIGH)
