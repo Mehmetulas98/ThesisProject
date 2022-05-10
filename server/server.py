@@ -11,31 +11,25 @@ import cv2
 from numpy import array
 from keyboardInput import *
 import sys
-
-
-###
+# Modelde kullanılacak olan ağırlıkların OpenCV ile okunması
 net = cv2.dnn.readNet("../weights/yolov3.weights", "../cfg/yolov3.cfg")
+# Tespit edilecek modellerin coco.names içerisinden isim olarak alınması.
 classes = []
 with open("../coco.names", "r") as f:
     classes = [line.strip() for line in f.readlines()]
 layer_names = net.getLayerNames()
 output_layers = net.getUnconnectedOutLayersNames()
+# Sınıf sayısı kadar farklı rengin oluşuturlması.
 colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
-# Loading image
 cap = cv2.VideoCapture(0)
-
 font = cv2.FONT_HERSHEY_PLAIN
 starting_time = time.time()
 frame_id = 0
-mon = {'top': 160, 'left': 160, 'width': 500, 'height': 500}
-
 x_medium = 218
 x_servo_position = 90
 x_center = 218
-###
-
-
+# Nesne tamnıma işlemini yapan fonksiyon.
 def detect(Screen, frame_id=frame_id):
     global x_servo_position
     height, width, channels = Screen.shape
@@ -107,14 +101,13 @@ def detect(Screen, frame_id=frame_id):
 
     return(x_servo_position)
 
-
+# Socket için ilgili Host ve Port bilgilerinin tanımlanması.
 HOST = '192.168.1.105'
 PORT = 65431
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(5)
 global a
-
 clientsocket, address = s.accept()
 print(f"Connection from {address} has been established.")
 #clientsocket.send(bytes("Hey there : ", "utf-8"))
@@ -123,18 +116,15 @@ with clientsocket:
     if(str(data) == "Start"):
         print("!!! Servo Motora Konum Bilgisi Gönderilmeye Başlanıyor !!!")
         time.sleep(3)
-        #
+        # Görüntünün kameradan okunması işlemi.
         cap = cv2.VideoCapture(1)
-        #
         while True:
-
-            ##
+            # Alınan görüntünün işlenebilmesi için sayısal forma dönüştürülmesi.
             _, frame = cap.read()
             Screen = array(frame)
-
-            ##
-            #Screen = array(ImageGrab.grab(bbox=(400, 400, 800, 800)))
+            # Görüntü işleme işleminin yapılması
             a = detect(Screen)
+            # Eğer q harfine basılırsa uygulamadan çıkılması işlemi.
             key = cv2.waitKey(1)
             if key == 27:
                 break
