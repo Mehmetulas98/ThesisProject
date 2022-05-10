@@ -108,13 +108,13 @@ def detect(Screen, frame_id=frame_id):
     return(x_servo_position)
 
 
-HOST = '192.168.1.105'
-PORT = 65431
+HOST = '192.168.1.104'
+PORT = 65433
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(5)
 global a
-
+print("kotnrol")
 clientsocket, address = s.accept()
 print(f"Connection from {address} has been established.")
 #clientsocket.send(bytes("Hey there : ", "utf-8"))
@@ -135,6 +135,7 @@ with clientsocket:
             ##
             #Screen = array(ImageGrab.grab(bbox=(400, 400, 800, 800)))
             a = detect(Screen)
+            print(a)
             key = cv2.waitKey(1)
             if key == 27:
                 break
@@ -142,9 +143,10 @@ with clientsocket:
             timee = str(a)
             try:
                 clientsocket.send(bytes(timee, "utf-8"))
+                print("Veri gönderildi")
             except:
-                print("İşlem Durduruldu !!!")
-                break
+                pass
+
     if(str(data) == "Manuel"):
         print("!!! Servo Motora Hareket Bilgisi Gönderilmeye Başlanıyor !!!")
         time.sleep(3)
