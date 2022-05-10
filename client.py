@@ -20,7 +20,7 @@ XINITPOS = 7.5
 XINITPOS=7.5
 p.start(XINITPOS)  
 
-def process_data_from_server(x):   
+def process_data_from_server(x):
     return x 
 def my_client():
         global XINITPOS
@@ -48,8 +48,39 @@ def my_client():
                             p.ChangeDutyCycle(XINITPOS)
                         else:
                             pass
-            else:
-                # Burası 
+            elif(my_inp == "Manuel"):
+                # Burada gelen kodlara göre araba hareket ettirilecek 
+                pass
+            elif(my_inp == "Otonom"):
+                #
+                #START_GPS_POSITION = []
+                #FINISH_GPS_POSITION = []
+                #CURRENT_GPS_POSITION = []
+                # CURRENT_ANGLE = get_angle()
+                while(True):
+                    # Hedef ile anlık koordinat arasındaki açı farkını bul
+                    # angle=get_bearing(CURRENT_GPS_POSITION[0],CURRENT_GPS_POSITION[1],FINISH_GPS_POSITION[0],FINISH_GPS_POSITION[1])
+                    
+                    # # 2 sn düz git
+
+                    # # yön düzelt
+                    # if(abs(angle - CURRCURRENT_ANGLE) > 180):
+                    #     while(angle != CURRENT_ANGLE):
+                    #         #sağa dön
+                    #         pass
+                    #     break
+                    # else:
+                    #     while(angle != CURRENT_ANGLE):
+                    #         #sola dön
+                    #         pass
+                    #     break
+
+                    # # GPS pozisyon bilgisi al
+                    # CURRRNT_GPS_POSITION = get_GPS_position()
+                    # if(get_distances(CURRENT_GPS_POSITION[0],CURRENT_GPS_POSITION[1],FINISH_GPS_POSITION[0],FINISH_GPS_POSITION[1]) <= 6):
+                    #     # İstenen bölgeye girildi
+                    #     print("! İstenen Konuma Varıldı !")
+                    #     break
                              
 if __name__ == "__main__":
     while 1:
